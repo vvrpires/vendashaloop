@@ -195,8 +195,8 @@ A senha dele fica no **`.env`**, na linha `NFE_CERT_PASSWORD`.
 ### Jeito 1: pela tela (recomendado)
 1. Entre como **admin** (superadmin).
 2. Vá em **Configuração → Minha empresa → Certificado digital**.
-3. Escolha o arquivo **.pfx**, digite a **senha** e clique em **Enviar**.
-4. O sistema confere a senha e mostra o titular do certificado. Ele grava sozinho:
+3. Em **Arquivo .pfx** escolha o certificado, em **Senha do certificado** digite a senha e clique em **Salvar certificado**.
+4. O sistema confere a senha e mostra **"Certificado salvo."**. Ele grava sozinho:
    - o arquivo em `/opt/haloop-vendas/certificado.pfx`;
    - a senha no `.env` (`NFE_CERT_PASSWORD='...'`).
 5. Não precisa reiniciar. Para trocar o certificado depois, repita o processo.
@@ -234,7 +234,7 @@ sudo systemctl restart haloop-vendas
 Se você usar a tela (Jeito 1), não precisa deste arquivo.
 
 ### Conferir
-- Em **Configuração → Minha empresa**, o cartão do certificado mostra o titular e a validade.
+- Em **Configuração → Minha empresa**, o cartão **Certificado digital** mostra **"Certificado instalado."**.
 - Comece emitindo em **Homologação** e só depois mude para **Produção**.
 
 ## Parte 9: Limpeza
