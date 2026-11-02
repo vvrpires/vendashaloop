@@ -3,8 +3,9 @@
 set -a
 . /opt/haloop-vendas/.env
 set +a
-# A senha do certificado pode ficar no arquivo certificado.senha (opcional)
-if [ -f /opt/haloop-vendas/certificado.senha ]; then
+# Senha do certificado: vale a do .env (gravada pela tela Minha empresa).
+# O arquivo certificado.senha só é usado se o .env não tiver a senha.
+if [ -z "${NFE_CERT_PASSWORD:-}" ] && [ -f /opt/haloop-vendas/certificado.senha ]; then
   export NFE_CERT_PASSWORD="$(cat /opt/haloop-vendas/certificado.senha)"
 fi
 cd /opt/haloop-vendas

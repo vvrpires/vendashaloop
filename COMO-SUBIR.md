@@ -177,15 +177,65 @@ O restante deste guia é a instalação **manual**, passo a passo, caso prefira 
 25. Abra `https://vendas.cliente.com.br` e entre com o usuário **`admin`** e a senha **`admin`**.
     Esse é o **superadmin**.
 26. Em **Minha conta**, troque a senha do `admin` na hora.
-27. Em **Configuração → Minha empresa**, preencha os dados da empresa e, se o cliente for emitir nota:
-    - envie o **certificado A1** (.pfx) e a senha;
-    - escolha o ambiente (comece em **Homologação**), a série e o regime.
+27. Em **Configuração → Minha empresa**, preencha os dados da empresa e, se o cliente for emitir nota,
+    envie o **certificado A1** (veja a seção *Certificado digital A1* abaixo) e escolha o ambiente
+    (comece em **Homologação**), a série e o regime.
 28. Em **Configuração → Temas**, coloque as logos, o fundo, o favicon, o título da aba e as cores.
     Campos vazios usam as imagens padrão do sistema.
 29. Em **Usuários → Novo usuário**, crie os usuários do cliente e escolha o grupo:
     - **Administrador**: o responsável do cliente (aplica tema, cria usuários e vê relatórios);
     - **Vendedor**, **Gerente**, **Financeiro** ou **Técnico**: a equipe.
 30. Teste: entre com o administrador do cliente e com um vendedor, crie um cliente, um produto e um orçamento.
+
+## Certificado digital A1 (para emitir NF-e e NFS-e)
+
+O certificado fica sempre em **`/opt/haloop-vendas/certificado.pfx`**.
+A senha dele fica no **`.env`**, na linha `NFE_CERT_PASSWORD`.
+
+### Jeito 1: pela tela (recomendado)
+1. Entre como **admin** (superadmin).
+2. Vá em **Configuração → Minha empresa → Certificado digital**.
+3. Escolha o arquivo **.pfx**, digite a **senha** e clique em **Enviar**.
+4. O sistema confere a senha e mostra o titular do certificado. Ele grava sozinho:
+   - o arquivo em `/opt/haloop-vendas/certificado.pfx`;
+   - a senha no `.env` (`NFE_CERT_PASSWORD='...'`).
+5. Não precisa reiniciar. Para trocar o certificado depois, repita o processo.
+
+### Jeito 2: à mão (pelo servidor)
+1. Envie o arquivo `.pfx` pelo **WinSCP** para `/home/ubuntu` e renomeie para `certificado.pfx`.
+2. No PuTTY, coloque o arquivo no lugar:
+   ```sh
+   sudo cp /home/ubuntu/certificado.pfx /opt/haloop-vendas/certificado.pfx
+   sudo chmod 600 /opt/haloop-vendas/certificado.pfx
+   rm /home/ubuntu/certificado.pfx
+   ```
+3. Grave a senha no `.env`:
+   ```sh
+   nano /opt/haloop-vendas/.env
+   ```
+   Acrescente a linha, **com aspas simples** (assim símbolos como `$` e `#` não atrapalham):
+   ```
+   NFE_CERT_PASSWORD='senha-do-certificado'
+   ```
+   Salve com **Ctrl+O**, Enter e **Ctrl+X**.
+4. Reinicie:
+   ```sh
+   sudo systemctl restart haloop-vendas
+   ```
+
+### E o arquivo `certificado.senha`?
+É o jeito antigo (usado pelo Grok): um arquivo `/opt/haloop-vendas/certificado.senha` com só a senha dentro.
+Ele continua funcionando, mas **só é usado se o `.env` não tiver `NFE_CERT_PASSWORD`**. Para criar:
+```sh
+nano /opt/haloop-vendas/certificado.senha     # cole a senha, salve e saia
+chmod 600 /opt/haloop-vendas/certificado.senha
+sudo systemctl restart haloop-vendas
+```
+Se você usar a tela (Jeito 1), não precisa deste arquivo.
+
+### Conferir
+- Em **Configuração → Minha empresa**, o cartão do certificado mostra o titular e a validade.
+- Comece emitindo em **Homologação** e só depois mude para **Produção**.
 
 ## Parte 9: Limpeza
 
