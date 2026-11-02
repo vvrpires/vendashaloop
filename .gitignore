@@ -1,0 +1,21 @@
+# dependências e builds
+node_modules/
+.output/
+.nitro/
+.tanstack/
+dist/
+pronto/
+revisoes/
+*.tgz
+
+# configuração e segredos (cada servidor tem os seus)
+.env
+.env.*
+!.env.example
+certificado.pfx
+certificado.senha
+*.pfx
+
+# sistema
+.DS_Store
+*.log

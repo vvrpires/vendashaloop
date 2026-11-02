@@ -1,0 +1,68 @@
+@import "tailwindcss" source("./");
+
+@theme {
+  --font-sans: "Chakra Petch", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Chakra Petch", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --color-bg: #0d1520;
+  --color-surface: #15202b;
+  --color-form: #1a2836;
+  --color-ink: #e8eef3;
+  --color-muted: #9aabba;
+  --color-line: #2a3b4d;
+  --color-accent: #0056b3;
+  --color-accent-fg: #ffffff;
+  --color-danger: #dc3545;
+  --color-ok: #3dd68c;
+  --color-warn: #f5c16c;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+  --radius-2xl: 8px;
+}
+
+@layer base {
+  html {
+    background: var(--color-bg);
+    color: var(--color-ink);
+  }
+  body {
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  html,
+  body {
+    background: white !important;
+  }
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+}
+
+.print-only {
+  display: none;
+}

@@ -1,0 +1,235 @@
+# Haloop Vendas: instalação do zero (rev.38)
+
+Passo a passo para colocar o sistema num servidor novo, por exemplo para um cliente novo.
+Cada cliente tem o próprio servidor (ou pasta) e o próprio banco no Supabase.
+
+> Servidor que **já roda** o Haloop Vendas: não use este guia. Use o pacote de atualização
+> (`haloop-vendas-rev38.zip` + `bash atualizar.sh`).
+
+O que você vai precisar:
+- um servidor Ubuntu 22.04 ou 24.04 (ex.: Oracle Cloud), com acesso SSH (PuTTY/WinSCP);
+- uma conta no Supabase;
+- um domínio ou subdomínio (ex.: `vendas.cliente.com.br`) apontando para o IP do servidor;
+- este pacote: `haloop-vendas-completo-rev38.zip`.
+
+---
+
+## Instalação automática (recomendada)
+
+O script `instalar.sh` faz as Partes 2 (firewall e Node), 3, 4, 5, 6 e 7 sozinho:
+memória swap, firewall, Node.js 22, cópia para `/opt/haloop-vendas`, `.env`, tabelas do banco,
+serviço e HTTPS.
+
+**Antes, pelo navegador:** faça a Parte 1 (Supabase) e os passos 6 e 7 (portas na Oracle Cloud
+e registro A do domínio).
+
+**Depois, no servidor:**
+1. Envie a pasta `haloop-vendas` para `/home/ubuntu` pelo WinSCP.
+2. No PuTTY (usuário `ubuntu`):
+   ```sh
+   cd /home/ubuntu/haloop-vendas
+   bash instalar.sh
+   ```
+3. Responda as duas perguntas:
+   - **DATABASE_URL**: o endereço do banco do passo 5 (cole com o botão direito do mouse);
+   - **Domínio**: por exemplo `vendas.cliente.com.br`.
+4. Aguarde a mensagem **"Haloop Vendas instalado!"** (de 5 a 15 minutos) e siga para a **Parte 8**.
+5. Apague a cópia temporária: `rm -rf /home/ubuntu/haloop-vendas`
+
+O restante deste guia é a instalação **manual**, passo a passo, caso prefira ou precise conferir algo.
+
+---
+
+## Parte 1: Banco de dados (Supabase)
+
+1. Em supabase.com, clique em **New project**.
+2. Dê um nome (ex.: `db-cliente`), crie uma **senha forte para o banco**, anote-a e escolha a região.
+3. Espere o projeto ficar pronto (cerca de 2 minutos).
+4. Clique em **Connect** → **Session pooler** e copie o endereço (URI), que começa com
+   `postgresql://postgres.` e usa a porta **5432**.
+5. No endereço copiado, troque `[YOUR-PASSWORD]` pela senha do passo 2. Guarde esse endereço para a Parte 4.
+
+## Parte 2: Servidor
+
+6. **Liberar as portas 80 e 443 na nuvem** (Oracle Cloud): em **Networking → Virtual Cloud Networks →
+   sua VCN → Security Lists → Default**, adicione regras de entrada (Ingress) TCP para as portas **80** e **443**,
+   origem `0.0.0.0/0`.
+7. **No domínio**: crie um registro **A** do subdomínio (ex.: `vendas`) apontando para o IP público do servidor.
+8. Entre no servidor pelo PuTTY e atualize o sistema:
+   ```sh
+   sudo apt update && sudo apt upgrade -y
+   ```
+9. **Liberar as portas no firewall do Ubuntu** (as imagens da Oracle vêm com iptables fechado):
+   ```sh
+   sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+   sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+   sudo apt install -y iptables-persistent
+   sudo netfilter-persistent save
+   ```
+10. **Instalar o Node.js 22**:
+    ```sh
+    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+    sudo apt install -y nodejs
+    node -v
+    ```
+    Deve mostrar `v22...`.
+
+## Parte 3: Copiar o sistema
+
+11. No seu computador, extraia o `haloop-vendas-completo-rev38.zip`. Vai aparecer a pasta `haloop-vendas`.
+12. No **WinSCP**, envie a pasta `haloop-vendas` para `/home/ubuntu`.
+13. No PuTTY, mova para o lugar definitivo:
+    ```sh
+    sudo mkdir -p /opt/haloop-vendas
+    sudo cp -r /home/ubuntu/haloop-vendas/. /opt/haloop-vendas/
+    sudo chown -R ubuntu:ubuntu /opt/haloop-vendas
+    cd /opt/haloop-vendas
+    ```
+
+## Parte 4: Configuração (.env)
+
+14. Gere a chave secreta e copie o resultado:
+    ```sh
+    openssl rand -hex 32
+    ```
+15. Crie o arquivo de configuração:
+    ```sh
+    cp .env.example .env
+    nano .env
+    ```
+16. Preencha, **sempre entre aspas simples**:
+    - `DATABASE_URL='...'`: o endereço do passo 5;
+    - `BETTER_AUTH_URL='https://vendas.cliente.com.br'`: o endereço do passo 7, com `https` e sem barra no final;
+    - `BETTER_AUTH_SECRET='...'`: a chave do passo 14.
+
+    Salve com **Ctrl+O**, Enter e **Ctrl+X**.
+17. Proteja o arquivo:
+    ```sh
+    chmod 600 .env
+    ```
+
+## Parte 5: Criar as tabelas do banco
+
+18. Instale as dependências (1 a 3 minutos):
+    ```sh
+    cd /opt/haloop-vendas
+    npm install --no-audit --no-fund
+    ```
+19. Crie as tabelas:
+    ```sh
+    set +u; set -a; . ./.env; set +a
+    node scripts/migrate.mjs
+    ```
+    Deve terminar com `[migrate] done — 22 migration(s) applied.`
+
+## Parte 6: Deixar o sistema rodando sozinho
+
+20. Crie o serviço:
+    ```sh
+    chmod +x /opt/haloop-vendas/iniciar.sh
+    sudo nano /etc/systemd/system/haloop-vendas.service
+    ```
+    Cole:
+    ```ini
+    [Unit]
+    Description=Haloop Vendas
+    After=network.target
+
+    [Service]
+    User=ubuntu
+    WorkingDirectory=/opt/haloop-vendas
+    ExecStart=/opt/haloop-vendas/iniciar.sh
+    Restart=always
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+21. Ative e teste:
+    ```sh
+    sudo systemctl daemon-reload
+    sudo systemctl enable --now haloop-vendas
+    systemctl status haloop-vendas --no-pager
+    curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:3000/
+    ```
+    Deve aparecer **active (running)** e **200**.
+
+## Parte 7: HTTPS (Caddy)
+
+22. Instale o Caddy:
+    ```sh
+    sudo apt install -y caddy
+    sudo nano /etc/caddy/Caddyfile
+    ```
+23. Apague o conteúdo e deixe só (com o seu domínio):
+    ```
+    vendas.cliente.com.br {
+      reverse_proxy 127.0.0.1:3000
+    }
+    ```
+24. Aplique:
+    ```sh
+    sudo systemctl restart caddy
+    ```
+    O certificado HTTPS é emitido sozinho em alguns segundos. Isso exige o domínio já apontado (passo 7) e as portas liberadas (passos 6 e 9).
+
+## Parte 8: Primeiro acesso e configuração
+
+25. Abra `https://vendas.cliente.com.br` e entre com o usuário **`admin`** e a senha **`admin`**.
+    Esse é o **superadmin**.
+26. Em **Minha conta**, troque a senha do `admin` na hora.
+27. Em **Configuração → Minha empresa**, preencha os dados da empresa e, se o cliente for emitir nota:
+    - envie o **certificado A1** (.pfx) e a senha;
+    - escolha o ambiente (comece em **Homologação**), a série e o regime.
+28. Em **Configuração → Temas**, coloque as logos, o fundo, o favicon, o título da aba e as cores.
+    Campos vazios usam as imagens padrão do sistema.
+29. Em **Usuários → Novo usuário**, crie os usuários do cliente e escolha o grupo:
+    - **Administrador**: o responsável do cliente (aplica tema, cria usuários e vê relatórios);
+    - **Vendedor**, **Gerente**, **Financeiro** ou **Técnico**: a equipe.
+30. Teste: entre com o administrador do cliente e com um vendedor, crie um cliente, um produto e um orçamento.
+
+## Parte 9: Limpeza
+
+31. Apague a cópia temporária:
+    ```sh
+    rm -rf /home/ubuntu/haloop-vendas
+    ```
+
+---
+
+## Comandos úteis
+
+| Para | Comando |
+|---|---|
+| Ver se está rodando | `systemctl status haloop-vendas --no-pager` |
+| Reiniciar | `sudo systemctl restart haloop-vendas` |
+| Ver os erros do sistema | `journalctl -u haloop-vendas -n 100 --no-pager` |
+| Ver os erros do HTTPS | `journalctl -u caddy -n 50 --no-pager` |
+
+## Problemas comuns
+
+- **Página não abre pelo domínio**: confira o registro A do domínio, as portas 80/443 na Security List (passo 6) e no iptables (passo 9).
+- **Erro de login ou "Invalid origin"**: o `BETTER_AUTH_URL` precisa ser exatamente o endereço aberto no navegador, com `https` e sem barra no final. Depois de corrigir, rode `sudo systemctl restart haloop-vendas`.
+- **Tela pedindo "endereço do banco"**: o `DATABASE_URL` está errado ou a senha do banco mudou. Corrija o `.env` e reinicie.
+- **`[migrate]` com erro de senha**: confira a senha dentro do `DATABASE_URL` e se ele está entre aspas simples.
+
+## Recompilar depois de mudar o código (src/)
+
+```sh
+cd /opt/haloop-vendas
+set +u; set -a; . ./.env; set +a
+npm install --no-audit --no-fund
+node scripts/exportar-imagens-padrao.mjs     # imagens atuais do Tema viram padrão
+NITRO_PRESET=node-server npm run build        # compila e aplica migrações novas
+mkdir -p revisoes && tar -C pronto -czf revisoes/antes-$(date +%F-%H%M).tgz .
+rm -rf pronto && cp -a .output pronto
+sudo systemctl restart haloop-vendas
+```
+
+## Voltar uma versão
+
+```sh
+cd /opt/haloop-vendas
+rm -rf pronto && mkdir pronto
+tar -C pronto -xzf revisoes/<arquivo>.tgz
+sudo systemctl restart haloop-vendas
+```

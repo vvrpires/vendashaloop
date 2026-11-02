@@ -1,0 +1,67 @@
+export const MODELOS_TEMA = [
+  {
+    nome: "Padrão",
+    valores: {
+      cor: "#0056b3",
+      corTexto: "#e8eef3",
+      corCard: "#15202b",
+      corMenu: "#0d1520",
+      corFundoLogin: "#0a121c",
+      corFundoSistema: "#0d1520",
+      fundoModoLogin: "padrao",
+      fundoModoSistema: "padrao",
+    },
+  },
+  {
+    nome: "Noite",
+    valores: {
+      cor: "#7c5cff",
+      corTexto: "#efeaff",
+      corCard: "#1b1430",
+      corMenu: "#120e22",
+      corFundoLogin: "#0c0918",
+      corFundoSistema: "#100c1c",
+      fundoModoLogin: "cor",
+      fundoModoSistema: "cor",
+    },
+  },
+  {
+    nome: "Oceano",
+    valores: {
+      cor: "#0ea5e9",
+      corTexto: "#e7f6ff",
+      corCard: "#123044",
+      corMenu: "#0c2433",
+      corFundoLogin: "#071923",
+      corFundoSistema: "#0b2230",
+      fundoModoLogin: "cor",
+      fundoModoSistema: "cor",
+    },
+  },
+  {
+    nome: "Floresta",
+    valores: {
+      cor: "#34d399",
+      corTexto: "#e8fff4",
+      corCard: "#143028",
+      corMenu: "#0d221c",
+      corFundoLogin: "#071611",
+      corFundoSistema: "#0c1f19",
+      fundoModoLogin: "cor",
+      fundoModoSistema: "cor",
+    },
+  },
+  {
+    nome: "Areia",
+    valores: {
+      cor: "#b45309",
+      corTexto: "#1c140c",
+      corCard: "#fff7ed",
+      corMenu: "#f5efe6",
+      corFundoLogin: "#f3eadf",
+      corFundoSistema: "#faf6f1",
+      fundoModoLogin: "cor",
+      fundoModoSistema: "cor",
+    },
+  },
+];
