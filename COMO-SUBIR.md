@@ -1,4 +1,4 @@
-# Haloop Vendas: instalação do zero (rev.38)
+# Haloop Vendas: instalação do zero (rev.39)
 
 Passo a passo para colocar o sistema num servidor novo, por exemplo para um cliente novo.
 Cada cliente tem o próprio servidor (ou pasta) e o próprio banco no Supabase.
@@ -16,25 +16,49 @@ O que você vai precisar:
 
 ## Instalação automática (recomendada)
 
-O script `instalar.sh` faz as Partes 2 (firewall e Node), 3, 4, 5, 6 e 7 sozinho:
-memória swap, firewall, Node.js 22, cópia para `/opt/haloop-vendas`, `.env`, tabelas do banco,
-serviço e HTTPS.
+O script `instalar.sh` faz quase tudo sozinho: memória swap, firewall, Node.js 22, cópia para
+`/opt/haloop-vendas`, `.env`, compilação (se necessário), tabelas do banco, serviço e acesso (Caddy).
+Funciona em **Ubuntu 22.04/24.04** e **Debian 12/13**, com o zip completo ou com o download do GitHub.
 
-**Antes, pelo navegador:** faça a Parte 1 (Supabase) e os passos 6 e 7 (portas na Oracle Cloud
-e registro A do domínio).
+### Domínio ou IP?
+O script pergunta como o sistema será acessado:
 
-**Depois, no servidor:**
-1. Envie a pasta `haloop-vendas` para `/home/ubuntu` pelo WinSCP.
-2. No PuTTY (usuário `ubuntu`):
+| Opção | Endereço | Quando usar |
+|---|---|---|
+| **1. Domínio (HTTPS)** | `https://vendas.cliente.com.br` | Acesso pela internet. Precisa de um domínio apontando para o servidor e das portas 80 e 443 livres |
+| **2. Só pelo IP (sem HTTPS)** | `http://192.168.0.10` | Rede interna ou VPN. Não precisa de domínio. Se a porta 80 já estiver em uso (Apache/Nginx), o sistema fica em `http://IP:3000` |
+
+No modo IP não há cadeado: o tráfego não é criptografado. Use só dentro da rede da empresa ou pela VPN.
+
+### Passos
+**Antes, pelo navegador:** faça a Parte 1 (Supabase). No modo domínio, faça também os passos 6 e 7
+(portas na Oracle Cloud e registro A do domínio).
+
+**No servidor:**
+1. Envie a pasta do sistema para o servidor (WinSCP), por exemplo para `/home/ubuntu`.
+   Pode ser a pasta `haloop-vendas` do zip ou a `vendashaloop-main` baixada do GitHub.
+2. No PuTTY (usuário normal, não root):
    ```sh
-   cd /home/ubuntu/haloop-vendas
+   cd /home/ubuntu/vendashaloop-main      # ou haloop-vendas
    bash instalar.sh
    ```
-3. Responda as duas perguntas:
+3. Responda:
+   - **Acesso**: `1` (domínio) ou `2` (só IP);
    - **DATABASE_URL**: o endereço do banco do passo 5 (cole com o botão direito do mouse);
-   - **Domínio**: por exemplo `vendas.cliente.com.br`.
-4. Aguarde a mensagem **"Haloop Vendas instalado!"** (de 5 a 15 minutos) e siga para a **Parte 8**.
-5. Apague a cópia temporária: `rm -rf /home/ubuntu/haloop-vendas`
+   - **Domínio** (opção 1) ou **IP** (opção 2, o script sugere o IP do servidor).
+4. Aguarde a mensagem **"Haloop Vendas pronto!"** (de 10 a 20 minutos) e siga para a **Parte 8**.
+5. Apague a cópia temporária da pasta enviada.
+
+### Rodar de novo
+Se o servidor já tem o Haloop Vendas, o script pergunta se deve **atualizar e refazer o acesso**.
+Ele mantém o banco, a chave secreta e a senha do certificado, guarda a versão anterior em
+`revisoes/` e permite trocar de IP para domínio (ou o contrário).
+
+### Se a porta estiver ocupada
+- **Modo domínio:** o script para e mostra qual programa usa a porta 80/443 (ex.: `apache2`).
+  Se ele não serve outros sites: `sudo systemctl disable --now apache2` e rode de novo.
+  Se serve, use o modo IP.
+- **Modo IP:** o sistema fica direto na porta 3000, sem Caddy.
 
 O restante deste guia é a instalação **manual**, passo a passo, caso prefira ou precise conferir algo.
 

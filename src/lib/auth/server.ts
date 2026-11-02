@@ -148,7 +148,12 @@ const database = databaseUrl
   : { dialect: pgliteDialect(() => getPglite()), type: "postgres" as const };
 
 /** Session token cookie name — also read by the live-preview popup completion page. */
-export const SESSION_TOKEN_COOKIE = "__Host-grok-auth.session_token";
+// rev.39: instalação acessada só pelo IP, sem HTTPS (BETTER_AUTH_URL começa com http://).
+// O navegador recusa cookies "Secure"/"__Host-" fora do HTTPS, então nesse modo os cookies
+// de login ficam sem esse prefixo. Com domínio (https://) tudo continua como antes.
+const acessoSemHttps = (explicitBaseURL ?? "").startsWith("http://");
+const PREFIXO_COOKIE = acessoSemHttps ? "" : "__Host-";
+export const SESSION_TOKEN_COOKIE = `${PREFIXO_COOKIE}grok-auth.session_token`;
 
 // Built separately so the `betterAuth({...})` call stays easy to edit without
 // breaking brackets (models often trip on the conditional plugin spread).
@@ -227,12 +232,12 @@ export const auth = betterAuth({
     // rev.05: IDs numéricos (serial) no banco em vez de texto aleatório.
     database: { generateId: "serial" },
     useSecureCookies: false,
-    defaultCookieAttributes: { secure: true, sameSite: "lax", path: "/" },
+    defaultCookieAttributes: { secure: !acessoSemHttps, sameSite: "lax", path: "/" },
     cookies: {
       session_token: { name: SESSION_TOKEN_COOKIE },
-      session_data: { name: "__Host-grok-auth.session_data" },
-      account_data: { name: "__Host-grok-auth.account_data" },
-      dont_remember: { name: "__Host-grok-auth.dont_remember" },
+      session_data: { name: `${PREFIXO_COOKIE}grok-auth.session_data` },
+      account_data: { name: `${PREFIXO_COOKIE}grok-auth.account_data` },
+      dont_remember: { name: `${PREFIXO_COOKIE}grok-auth.dont_remember` },
     },
   },
 

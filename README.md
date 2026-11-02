@@ -3,7 +3,7 @@
 Sistema web de orçamentos e vendas com emissão de NF-e e NFS-e, feito para revenda:
 cada cliente tem a própria instalação (servidor e banco Supabase).
 
-**Versão atual:** rev.38
+**Versão atual:** rev.39
 
 ## Tecnologia
 - TanStack Start (React 19 + Vite + Nitro), Tailwind CSS 4
@@ -28,10 +28,11 @@ cada cliente tem a própria instalação (servidor e banco Supabase).
 - **Grupos** Vendedor, Gerente, Financeiro e Técnico: permissões definidas pelo grupo.
 
 ## Instalação
-Veja [`COMO-SUBIR.md`](COMO-SUBIR.md). Resumo para servidor novo:
+Veja [`COMO-SUBIR.md`](COMO-SUBIR.md). Resumo para servidor novo (Ubuntu ou Debian):
 ```sh
 bash instalar.sh
 ```
+O instalador pergunta se o acesso será pelo **domínio (HTTPS)** ou **só pelo IP (rede interna)**.
 
 ## Desenvolvimento
 ```sh
