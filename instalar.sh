@@ -12,7 +12,9 @@
 #
 #  O que ele faz: memória swap, firewall (iptables 80/443), Node.js 22,
 #  copia o sistema para /opt/haloop-vendas, cria o .env, instala as
-#  dependências, cria as tabelas, cria o serviço e configura o HTTPS (Caddy).
+#  dependências, compila (se veio do GitHub sem a pasta pronto/), cria as
+#  tabelas, cria o serviço e configura o HTTPS (Caddy).
+#  Funciona com o zip completo ou com o download do GitHub (vendashaloop-main).
 #
 #  O que NÃO dá para fazer daqui (faça antes, pelo navegador):
 #   - criar o projeto no Supabase;
@@ -33,7 +35,7 @@ aviso() { printf '\033[1;33m   atenção:\033[0m %s\n' "$1"; }
 erro()  { printf '\n\033[1;31mERRO:\033[0m %s\n' "$1"; exit 1; }
 
 [ "$EU" = "root" ] && erro "Rode como usuário normal (ex.: ubuntu), não como root. O script pede o sudo quando precisa."
-[ -f "$ORIGEM/pronto/server/index.mjs" ] || erro "Rode este script de dentro da pasta haloop-vendas (não achei pronto/server/index.mjs)."
+[ -f "$ORIGEM/package.json" ] && [ -d "$ORIGEM/src" ] || erro "Rode este script de dentro da pasta do sistema (onde estão o package.json e a pasta src)."
 [ -f "$APP/.env" ] && erro "Já existe uma instalação em $APP. Para atualizar, use o pacote de atualização (atualizar.sh)."
 
 # ---------------------------------------------------------------- perguntas
@@ -126,10 +128,18 @@ chmod 600 "$APP/.env"
 ok ".env criado (somente o usuário $EU lê)"
 
 # ---------------------------------------------------------------- 7. banco
-passo "7/9 Dependências e tabelas do banco (pode levar alguns minutos)"
+passo "7/9 Dependências, compilação e tabelas do banco (pode levar vários minutos)"
 cd "$APP"
 npm install --no-audit --no-fund --loglevel=error
 set +u; set -a; . ./.env; set +a; set -u
+if [ ! -f "$APP/pronto/server/index.mjs" ]; then
+  echo "   compilando o sistema (código vindo do GitHub, sem a pasta pronto/)..."
+  node scripts/exportar-imagens-padrao.mjs >/dev/null 2>&1 || true
+  PATH="$APP/node_modules/.bin:$PATH" NITRO_PRESET=node-server node scripts/with-app-env.mjs vite build --logLevel error
+  [ -f .output/server/index.mjs ] || erro "A compilação não gerou .output/server/index.mjs"
+  rm -rf pronto && cp -a .output pronto
+  ok "sistema compilado"
+fi
 node scripts/migrate.mjs || erro "Não consegui criar as tabelas. Confira o endereço e a senha do banco no $APP/.env e rode: cd $APP && set -a && . ./.env && set +a && node scripts/migrate.mjs"
 ok "banco pronto"
 
