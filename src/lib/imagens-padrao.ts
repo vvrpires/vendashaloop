@@ -18,6 +18,7 @@ export const IMAGENS_PADRAO_CLARO: Partial<Record<ChaveImagem, string>> = {
   logoLogin: "/padrao/claro/logo-login.png",
   logoSistema: "/padrao/claro/logo-sistema.png",
   logoMenu: "/padrao/claro/logo-menu.png",
+  favicon: "/padrao/claro/favicon.png",
 };
 
 function luz(hex: string): number {
