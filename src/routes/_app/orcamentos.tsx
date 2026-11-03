@@ -18,6 +18,15 @@ import {
   saveOrcamento,
 } from "@/lib/vendas.functions";
 
+// rev.44: monta o endereço do cliente cadastrado numa linha só (rua, número, bairro, cidade/UF e CEP)
+function enderecoCompleto(cliente) {
+  const rua = [cliente.endereco, cliente.numero].filter((parte) => String(parte ?? "").trim()).join(", ");
+  const cidade = [cliente.municipio, cliente.uf].filter((parte) => String(parte ?? "").trim()).join("/");
+  return [rua, cliente.bairro, cidade, cliente.cep ? `CEP ${cliente.cep}` : ""]
+    .filter((parte) => String(parte ?? "").trim())
+    .join(" - ");
+}
+
 export const Route = createFileRoute("/_app/orcamentos")({ component: OrcamentosPage });
 
 function blank() {
@@ -454,7 +463,7 @@ export function OrcamentosPage() {
                       clienteDoc: found.documento,
                       clienteTelefone: found.telefone,
                       clienteEmail: found.email,
-                      clienteEndereco: found.endereco,
+                      clienteEndereco: enderecoCompleto(found),
                     });
                   }}
                 >

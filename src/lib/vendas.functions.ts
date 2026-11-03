@@ -585,10 +585,13 @@ export const listClientes = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     exigirAlgum(await member(context.userId), ["clientes", "orcamentos"]);
-    return await (await getSql())`
+    const rows = await (await getSql())`
       select id, nome, documento, telefone, email, endereco, cep, numero, bairro, municipio, uf
       from clientes order by nome
     `;
+    // rev.44: o código (id) vai como texto, igual aos produtos; com número o seletor
+    // "Cliente cadastrado" do orçamento não encontrava o cliente escolhido.
+    return rows.map((row) => ({ ...row, id: String(row.id) }));
   });
 async function exigirEmpresa(sql) {
   const rows = await sql`select nome from empresa where id = 1`;
