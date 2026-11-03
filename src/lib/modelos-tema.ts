@@ -13,6 +13,20 @@ export const MODELOS_TEMA = [
     },
   },
   {
+    // rev.46: tema claro (fundo branco e texto escuro), com as imagens padrão de tema claro
+    nome: "CLARO",
+    valores: {
+      cor: "#0056b3",
+      corTexto: "#1f2937",
+      corCard: "#ffffff",
+      corMenu: "#ffffff",
+      corFundoLogin: "#eef2f7",
+      corFundoSistema: "#f3f5f8",
+      fundoModoLogin: "cor",
+      fundoModoSistema: "cor",
+    },
+  },
+  {
     nome: "NOITE",
     valores: {
       cor: "#7c5cff",
@@ -65,3 +79,6 @@ export const MODELOS_TEMA = [
     },
   },
 ];
+
+/** Nomes dos temas padrão (não podem ser usados por temas criados). */
+export const NOMES_MODELOS = MODELOS_TEMA.map((modelo) => modelo.nome);

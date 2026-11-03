@@ -43,6 +43,8 @@ function TemaPainel({ marca, onClose, embutido = false }) {
   const [busy, setBusy] = useState(false);
   const [temas, setTemas] = useState([]);
   const [nomeTema, setNomeTema] = useState("");
+  // rev.46: tema criado que está sendo editado (null = criando um tema novo)
+  const [editando, setEditando] = useState(null);
   useEffect(() => {
     getEmpresa()
       .then(setForm)
@@ -99,6 +101,30 @@ function TemaPainel({ marca, onClose, embutido = false }) {
       setBusy(false);
     }
   }
+  function dadosDoForm() {
+    return {
+      cor: form.cor,
+      corTexto: form.corTexto,
+      corCard: form.corCard,
+      corMenu: form.corMenu,
+      corFundoLogin: form.corFundoLogin,
+      corFundoSistema: form.corFundoSistema,
+      fundoModoLogin: form.fundoModoLogin,
+      fundoModoSistema: form.fundoModoSistema,
+      fundoLogin: form.fundoLogin,
+      fundoSistema: form.fundoSistema,
+      logo: form.logo,
+      logoClara: form.logoClara,
+      favicon: form.favicon,
+      logoMenu: form.logoMenu,
+      logoLogin: form.logoLogin,
+      logoSistema: form.logoSistema,
+      tituloAba: form.tituloAba,
+      textoLogin: form.textoLogin,
+      nomeRodape: form.nomeRodape,
+      loginLado: form.loginLado,
+    };
+  }
   async function criarTema() {
     if (!form || nomeTema.trim().length < 2) {
       setError("Informe o nome do tema.");
@@ -106,44 +132,42 @@ function TemaPainel({ marca, onClose, embutido = false }) {
     }
     setError("");
     try {
-      await saveTema({
-        data: {
-          nome: nomeTema,
-          dados: {
-            cor: form.cor,
-            corTexto: form.corTexto,
-            corCard: form.corCard,
-            corMenu: form.corMenu,
-            corFundoLogin: form.corFundoLogin,
-            corFundoSistema: form.corFundoSistema,
-            fundoModoLogin: form.fundoModoLogin,
-            fundoModoSistema: form.fundoModoSistema,
-            fundoLogin: form.fundoLogin,
-            fundoSistema: form.fundoSistema,
-            logo: form.logo,
-            logoClara: form.logoClara,
-            favicon: form.favicon,
-            logoMenu: form.logoMenu,
-            logoLogin: form.logoLogin,
-            logoSistema: form.logoSistema,
-            tituloAba: form.tituloAba,
-            textoLogin: form.textoLogin,
-            nomeRodape: form.nomeRodape,
-            loginLado: form.loginLado,
-          },
-        },
-      });
+      await saveTema({ data: { id: editando?.id ?? "", nome: nomeTema, dados: dadosDoForm() } });
       setNomeTema("");
+      setEditando(null);
       setTemas(await listTemas());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Não foi possível criar o tema.");
+      setError(err instanceof Error ? err.message : "Não foi possível salvar o tema.");
+    }
+  }
+  function editarTema(tema) {
+    setError("");
+    setForm({ ...form, ...tema.dados });
+    setNomeTema(String(tema.nome).toLocaleUpperCase("pt-BR"));
+    setEditando(tema);
+  }
+  function cancelarEdicao() {
+    setNomeTema("");
+    setEditando(null);
+  }
+  async function duplicarTema(tema) {
+    setError("");
+    const base = String(tema.nome).toLocaleUpperCase("pt-BR").slice(0, 30);
+    const usados = new Set(temas.map((t) => String(t.nome).toLocaleUpperCase("pt-BR")));
+    let nome = `${base} - CÓPIA`;
+    for (let n = 2; usados.has(nome); n++) nome = `${base} - CÓPIA ${n}`;
+    try {
+      await saveTema({ data: { nome, dados: tema.dados } });
+      setTemas(await listTemas());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível duplicar o tema.");
     }
   }
   const previa = form
     ? fundoStyle(
         vista === "entrada" ? form.fundoModoLogin : form.fundoModoSistema,
         vista === "entrada" ? form.corFundoLogin : form.corFundoSistema,
-        vista === "entrada" ? form.fundoLogin || imagemPadrao("fundoLogin") : form.fundoSistema,
+        vista === "entrada" ? form.fundoLogin || imagemPadrao("fundoLogin", form) : form.fundoSistema,
       )
     : undefined;
   const formulario = (
@@ -202,9 +226,25 @@ function TemaPainel({ marca, onClose, embutido = false }) {
                   placeholder="Nome do tema"
                 />
                 <Button type="button" onClick={() => void criarTema()}>
-                  Criar tema
+                  {editando ? "Salvar alterações" : "Criar tema"}
                 </Button>
+                {editando ? (
+                  <Button type="button" variant="quiet" onClick={cancelarEdicao}>
+                    Cancelar
+                  </Button>
+                ) : null}
               </div>
+              {editando ? (
+                <p className="mt-2 text-xs text-muted">
+                  Editando o tema {String(editando.nome).toLocaleUpperCase("pt-BR")}: ajuste as cores e as
+                  imagens abaixo e clique em Salvar alterações.
+                </p>
+              ) : (
+                <p className="mt-2 text-xs text-muted">
+                  Os temas padrão não podem ser alterados. Para criar um parecido, escolha o modelo, ajuste e
+                  crie um tema com outro nome.
+                </p>
+              )}
               <ul className="mt-3 divide-y divide-line">
                 {temas.map((tema) => (
                   <li key={tema.id} className="flex items-center justify-between gap-2 py-2">
@@ -223,6 +263,12 @@ function TemaPainel({ marca, onClose, embutido = false }) {
                         }
                       >
                         Usar
+                      </Button>
+                      <Button type="button" variant="quiet" onClick={() => editarTema(tema)}>
+                        Editar
+                      </Button>
+                      <Button type="button" variant="quiet" onClick={() => void duplicarTema(tema)}>
+                        Duplicar
                       </Button>
                       <Button
                         type="button"
@@ -250,7 +296,7 @@ function TemaPainel({ marca, onClose, embutido = false }) {
                   titulo="Logo da tela de login"
                   ajuda="Tamanho ideal: 320 × 80 px. PNG, JPG ou WebP de até 400 KB."
                   valor={form.logoLogin}
-                  padrao={imagemPadrao("logoLogin")}
+                  padrao={imagemPadrao("logoLogin", form)}
                   onArquivo={(file) => void onImagem(file, "logoLogin")}
                   onLimpar={() => setForm({ ...form, logoLogin: "" })}
                 />
@@ -258,7 +304,7 @@ function TemaPainel({ marca, onClose, embutido = false }) {
                   titulo="Logo interna do sistema"
                   ajuda="Tamanho ideal: 320 × 80 px. PNG, JPG ou WebP de até 400 KB."
                   valor={form.logoSistema}
-                  padrao={imagemPadrao("logoSistema")}
+                  padrao={imagemPadrao("logoSistema", form)}
                   onArquivo={(file) => void onImagem(file, "logoSistema")}
                   onLimpar={() => setForm({ ...form, logoSistema: "" })}
                 />
@@ -266,7 +312,7 @@ function TemaPainel({ marca, onClose, embutido = false }) {
                   titulo="Logo do PDF"
                   ajuda="Tamanho ideal: 320 × 80 px. PNG, JPG ou WebP de até 400 KB."
                   valor={form.logo}
-                  padrao={imagemPadrao("logo")}
+                  padrao={imagemPadrao("logo", form)}
                   fundoClaro
                   onArquivo={(file) => void onImagem(file, "logo")}
                   onLimpar={() => setForm({ ...form, logo: "" })}
@@ -275,7 +321,7 @@ function TemaPainel({ marca, onClose, embutido = false }) {
                   titulo="Logo menor do menu"
                   ajuda="Aparece com o menu recolhido. Tamanho ideal: 64 × 64 px. Até 400 KB."
                   valor={form.logoMenu}
-                  padrao={imagemPadrao("logoMenu")}
+                  padrao={imagemPadrao("logoMenu", form)}
                   quadrado
                   onArquivo={(file) => void onImagem(file, "logoMenu")}
                   onLimpar={() => setForm({ ...form, logoMenu: "" })}
@@ -284,7 +330,7 @@ function TemaPainel({ marca, onClose, embutido = false }) {
                   titulo="Tela de login"
                   ajuda="Fundo da tela de login. Tamanho ideal: 1920 × 1080 px. Até 600 KB."
                   valor={form.fundoLogin}
-                  padrao={imagemPadrao("fundoLogin")}
+                  padrao={imagemPadrao("fundoLogin", form)}
                   onArquivo={(file) =>
                     void onImagem(file, "fundoLogin").then(() =>
                       setForm((atual) => (atual ? { ...atual, fundoModoLogin: "imagem" } : atual)),
@@ -302,7 +348,7 @@ function TemaPainel({ marca, onClose, embutido = false }) {
                   titulo="Favicon"
                   ajuda="Ícone da aba do navegador. Tamanho ideal: 32 × 32 ou 64 × 64 px. Até 100 KB."
                   valor={form.favicon}
-                  padrao={imagemPadrao("favicon")}
+                  padrao={imagemPadrao("favicon", form)}
                   quadrado
                   onArquivo={(file) => void onImagem(file, "favicon")}
                   onLimpar={() => setForm({ ...form, favicon: "" })}

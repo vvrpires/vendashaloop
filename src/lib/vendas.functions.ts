@@ -4,6 +4,7 @@ import { authMiddleware } from "@/lib/auth/middleware";
 import { getSql } from "@/lib/db";
 import { num } from "@/lib/money";
 import { PERMISSOES, pode } from "@/lib/permissoes";
+import { NOMES_MODELOS } from "@/lib/modelos-tema";
 
 const ADMIN_EMAIL = "admin@haloop.com.br";
 const ADMIN_PASSWORD = "admin";
@@ -1314,20 +1315,26 @@ export const saveTema = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((input) => {
     const row = input ?? {};
-    const nome = clip(row.nome, 40);
+    const nome = clip(row.nome, 40).toLocaleUpperCase("pt-BR");
     if (nome.length < 2) throw new Error("Informe o nome do tema.");
+    // rev.46: os temas padrão não podem ser substituídos nem modificados
+    if (NOMES_MODELOS.includes(nome)) throw new Error("Esse nome é de um tema padrão. Escolha outro nome.");
     return {
+      id: clip(row.id, 12),
       nome,
       dados: JSON.stringify(temaVisual(row.dados)),
     };
   })
   .handler(async ({ context, data }) => {
     await exigirSuper(context.userId);
-    const rows = await (await getSql())`
-      insert into temas (nome, dados) values (${data.nome}, ${data.dados})
-      on conflict (nome) do update set dados = excluded.dados
-      returning id
-    `;
+    const sql = await getSql();
+    // rev.46: com id = editar o tema (pode trocar o nome); sem id = tema novo
+    const outro = await sql`select id from temas where upper(nome) = ${data.nome}`;
+    if (outro[0] && String(outro[0].id) !== data.id) throw new Error("Já existe um tema com esse nome.");
+    const rows = data.id
+      ? await sql`update temas set nome = ${data.nome}, dados = ${data.dados} where id = ${data.id} returning id`
+      : await sql`insert into temas (nome, dados) values (${data.nome}, ${data.dados}) returning id`;
+    if (!rows[0]) throw new Error("Tema não encontrado.");
     return {
       id: String(rows[0].id),
       nome: data.nome,
