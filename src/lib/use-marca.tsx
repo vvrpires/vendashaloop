@@ -51,7 +51,7 @@ function misturar(origem, destino, peso) {
 }
 /** Imagem do campo ou, se estiver vazio, a imagem padrão do sistema (rev.38). */
 export function imagemDe(marca, chave: ChaveImagem): string {
-  return String(marca?.[chave] ?? "") || imagemPadrao(chave);
+  return String(marca?.[chave] ?? "") || imagemPadrao(chave, marca);
 }
 const faviconVazio = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 export function aplicarTema(marca) {

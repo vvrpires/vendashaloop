@@ -17,7 +17,7 @@ export const Route = createRootRoute({
       { name: "theme-color", content: "#0d1520" },
     ],
     links: [
-      { rel: "icon", href: loaderData?.favicon || imagemPadrao("favicon") || FAVICON_VAZIO },
+      { rel: "icon", href: loaderData?.favicon || imagemPadrao("favicon", loaderData) || FAVICON_VAZIO },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
