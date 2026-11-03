@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { caixaAlta } from "@/lib/mascaras";
 import { useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { CampoImagem } from "@/components/campo-imagem";
@@ -197,7 +198,7 @@ function TemaPainel({ marca, onClose, embutido = false }) {
                 <TextInput
                   value={nomeTema}
                   maxLength={40}
-                  onChange={(e) => setNomeTema(e.target.value)}
+                  onChange={(e) => setNomeTema(caixaAlta(e.target.value))}
                   placeholder="Nome do tema"
                 />
                 <Button type="button" onClick={() => void criarTema()}>
@@ -207,7 +208,9 @@ function TemaPainel({ marca, onClose, embutido = false }) {
               <ul className="mt-3 divide-y divide-line">
                 {temas.map((tema) => (
                   <li key={tema.id} className="flex items-center justify-between gap-2 py-2">
-                    <span className="text-sm font-semibold">{tema.nome}</span>
+                    <span className="text-sm font-semibold">
+                      {String(tema.nome).toLocaleUpperCase("pt-BR")}
+                    </span>
                     <span className="flex gap-2">
                       <Button
                         type="button"

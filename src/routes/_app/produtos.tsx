@@ -12,7 +12,7 @@ const empty = {
   id: "",
   descricao: "",
   valor: 0,
-  unidade: "un",
+  unidade: "UNI",
   tipo: "servico",
   ncm: "",
   cfop: "5102",
@@ -35,6 +35,16 @@ const ncms = [
   ["84433299", "84433299 — Impressora"],
   ["85444200", "85444200 — Cabo"],
 ];
+// rev.45: unidades disponíveis no Catálogo; cadastros antigos (un, und, unid...) aparecem como UNI
+const unidades = ["CX", "MT", "UNI"];
+function unidadeDe(valor) {
+  const u = String(valor ?? "")
+    .trim()
+    .toUpperCase();
+  if (u === "CX" || u.startsWith("CAIXA")) return "CX";
+  if (u === "MT" || u === "M" || u.startsWith("METRO")) return "MT";
+  return "UNI";
+}
 export function ProdutosPage() {
   const [rows, setRows] = useState([]);
   const [form, setForm] = useState(empty);
@@ -100,15 +110,21 @@ export function ProdutosPage() {
             />
           </Field>
           <Field label="Unidade">
-            <TextInput
-              value={form.unidade}
+            <SelectInput
+              value={unidadeDe(form.unidade)}
               onChange={(e) =>
                 setForm({
                   ...form,
                   unidade: e.target.value,
                 })
               }
-            />
+            >
+              {unidades.map((u) => (
+                <option key={u} value={u}>
+                  {u}
+                </option>
+              ))}
+            </SelectInput>
           </Field>
           <Field label="Tipo">
             <SelectInput
@@ -185,14 +201,18 @@ export function ProdutosPage() {
                   {" \u00B7 "}
                   {brl(row.valor)}
                   {" / "}
-                  {row.unidade}
+                  {unidadeDe(row.unidade)}
                   {" \u00B7 "}
                   {row.tipo === "produto" ? "Produto" : "Serviço"}
                   {row.ncm ? ` · NCM ${row.ncm}` : ""}
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button variant="quiet" type="button" onClick={() => setForm(row)}>
+                <Button
+                  variant="quiet"
+                  type="button"
+                  onClick={() => setForm({ ...row, unidade: unidadeDe(row.unidade) })}
+                >
                   Editar
                 </Button>
                 <Button

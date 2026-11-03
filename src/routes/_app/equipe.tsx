@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { caixaAlta } from "@/lib/mascaras";
 import { useEffect, useState } from "react";
 import { Badge, Button, Card, Field, TextInput } from "@/components/ui";
 import {
@@ -121,7 +122,12 @@ export function EquipePage() {
         <Card>
           <form className="grid gap-3 sm:grid-cols-2" onSubmit={onSubmit}>
             <Field label="Nome">
-              <TextInput value={name} onChange={(e) => setName(e.target.value)} required autoComplete="off" />
+              <TextInput
+                value={name}
+                onChange={(e) => setName(caixaAlta(e.target.value))}
+                required
+                autoComplete="off"
+              />
             </Field>
             <Field label="Usuário">
               <TextInput
