@@ -115,15 +115,21 @@ ok "o sistema vai abrir em: $URL"
 
 # ---------------------------------------------------------------- 1. swap
 passo "1/9 Memória (swap)"
-if [ "$(swapon --show --noheadings | wc -l)" -eq 0 ]; then
+# /proc/swaps funciona sem sudo no Ubuntu e no Debian (lá o swapon não fica no PATH do usuário)
+if [ "$(tail -n +2 /proc/swaps | wc -l)" -gt 0 ]; then
+  ok "swap já existe ($(tail -n +2 /proc/swaps | awk '{print $1}' | paste -sd ' '))"
+elif [ -f /swapfile ]; then
+  sudo chmod 600 /swapfile
+  sudo /sbin/swapon /swapfile 2>/dev/null || { sudo /sbin/mkswap /swapfile >/dev/null && sudo /sbin/swapon /swapfile; }
+  grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab >/dev/null
+  ok "swap /swapfile ativado"
+else
   sudo fallocate -l 4G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=4096 status=none
   sudo chmod 600 /swapfile
-  sudo mkswap /swapfile >/dev/null
-  sudo swapon /swapfile
+  sudo /sbin/mkswap /swapfile >/dev/null
+  sudo /sbin/swapon /swapfile
   grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab >/dev/null
   ok "swap de 4 GB criado"
-else
-  ok "swap já existe"
 fi
 
 # ---------------------------------------------------------------- 2. pacotes
