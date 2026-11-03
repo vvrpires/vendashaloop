@@ -1,6 +1,6 @@
 export const MODELOS_TEMA = [
   {
-    nome: "Padrão",
+    nome: "PADRÃO",
     valores: {
       cor: "#0056b3",
       corTexto: "#e8eef3",
@@ -13,7 +13,7 @@ export const MODELOS_TEMA = [
     },
   },
   {
-    nome: "Noite",
+    nome: "NOITE",
     valores: {
       cor: "#7c5cff",
       corTexto: "#efeaff",
@@ -26,7 +26,7 @@ export const MODELOS_TEMA = [
     },
   },
   {
-    nome: "Oceano",
+    nome: "OCEANO",
     valores: {
       cor: "#0ea5e9",
       corTexto: "#e7f6ff",
@@ -39,7 +39,7 @@ export const MODELOS_TEMA = [
     },
   },
   {
-    nome: "Floresta",
+    nome: "FLORESTA",
     valores: {
       cor: "#34d399",
       corTexto: "#e8fff4",
@@ -52,7 +52,7 @@ export const MODELOS_TEMA = [
     },
   },
   {
-    nome: "Areia",
+    nome: "AREIA",
     valores: {
       cor: "#b45309",
       corTexto: "#1c140c",

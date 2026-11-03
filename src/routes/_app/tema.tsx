@@ -26,7 +26,10 @@ export function TemaPage() {
   if (!pronto) return <p className="text-sm text-muted">Carregando…</p>;
   if (!acesso) return <p className="text-sm text-muted">Você não tem acesso.</p>;
   const nomesPadrao = new Set(MODELOS_TEMA.map((modelo) => modelo.nome));
-  const personalizados = linhas.filter((tema) => !nomesPadrao.has(tema.nome));
+  // rev.45: nomes dos temas em CAIXA ALTA (os antigos "Padrão", "Noite"... continuam reconhecidos)
+  const personalizados = linhas.filter(
+    (tema) => !nomesPadrao.has(String(tema.nome).toLocaleUpperCase("pt-BR")),
+  );
   return (
     <div className="space-y-4">
       <h1 className="font-display text-3xl font-medium tracking-tight">Tema</h1>
@@ -54,7 +57,7 @@ export function TemaPage() {
         {personalizados.map((tema) => (
           <Card key={tema.id}>
             <div className="flex items-center justify-between gap-3">
-              <p className="font-semibold">{tema.nome}</p>
+              <p className="font-semibold">{String(tema.nome).toLocaleUpperCase("pt-BR")}</p>
               <Button
                 type="button"
                 onClick={() =>

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CampoMoeda } from "@/components/campo-moeda";
+import { caixaAlta, mascaraDocumento, mascaraTelefone } from "@/lib/mascaras";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, Field, SelectInput, TextArea, TextInput } from "@/components/ui";
 import { addDays, brl, formatDate, todayIso } from "@/lib/money";
@@ -481,7 +482,7 @@ export function OrcamentosPage() {
                   onChange={(e) =>
                     setDraft({
                       ...draft,
-                      clienteNome: e.target.value,
+                      clienteNome: caixaAlta(e.target.value),
                     })
                   }
                 />
@@ -492,7 +493,7 @@ export function OrcamentosPage() {
                   onChange={(e) =>
                     setDraft({
                       ...draft,
-                      clienteDoc: e.target.value,
+                      clienteDoc: mascaraDocumento(e.target.value),
                     })
                   }
                 />
@@ -503,7 +504,7 @@ export function OrcamentosPage() {
                   onChange={(e) =>
                     setDraft({
                       ...draft,
-                      clienteTelefone: e.target.value,
+                      clienteTelefone: mascaraTelefone(e.target.value),
                     })
                   }
                 />
@@ -528,7 +529,7 @@ export function OrcamentosPage() {
                     onChange={(e) =>
                       setDraft({
                         ...draft,
-                        clienteEndereco: e.target.value,
+                        clienteEndereco: caixaAlta(e.target.value),
                       })
                     }
                   />
@@ -598,7 +599,7 @@ export function OrcamentosPage() {
                       const itens = draft.itens.slice();
                       itens[index] = {
                         ...item,
-                        desc: e.target.value,
+                        desc: caixaAlta(e.target.value),
                       };
                       setDraft({
                         ...draft,
@@ -752,7 +753,7 @@ export function OrcamentosPage() {
                     onChange={(e) =>
                       setDraft({
                         ...draft,
-                        observacoes: e.target.value,
+                        observacoes: caixaAlta(e.target.value),
                       })
                     }
                   />
