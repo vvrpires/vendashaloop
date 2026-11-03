@@ -4,6 +4,7 @@ import { Button, Card, Field, SelectInput, TextInput } from "@/components/ui";
 import { caixaAlta } from "@/lib/mascaras";
 import { brl } from "@/lib/money";
 import { deleteProduto, listProdutos, saveProduto } from "@/lib/vendas.functions";
+import { CampoMoeda } from "@/components/campo-moeda";
 
 export const Route = createFileRoute("/_app/produtos")({ component: ProdutosPage });
 
@@ -88,10 +89,7 @@ export function ProdutosPage() {
             </Field>
           </div>
           <Field label="Valor">
-            <TextInput
-              type="number"
-              min={0}
-              step="0.01"
+            <CampoMoeda
               value={form.valor}
               onChange={(e) =>
                 setForm({

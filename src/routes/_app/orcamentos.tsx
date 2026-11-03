@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CampoMoeda } from "@/components/campo-moeda";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, Field, SelectInput, TextArea, TextInput } from "@/components/ui";
 import { addDays, brl, formatDate, todayIso } from "@/lib/money";
@@ -614,11 +615,8 @@ export function OrcamentosPage() {
                       });
                     }}
                   />
-                  <TextInput
+                  <CampoMoeda
                     className="col-span-5 sm:col-span-2"
-                    type="number"
-                    min={0}
-                    step="0.01"
                     value={item.unit}
                     onChange={(e) => {
                       const itens = draft.itens.slice();
@@ -655,10 +653,7 @@ export function OrcamentosPage() {
           <Card className="no-print">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <Field label="Desconto (R$)">
-                <TextInput
-                  type="number"
-                  min={0}
-                  step="0.01"
+                <CampoMoeda
                   value={draft.desconto}
                   onChange={(e) =>
                     setDraft({
@@ -731,10 +726,7 @@ export function OrcamentosPage() {
                 </SelectInput>
               </Field>
               <Field label="Valor pago">
-                <TextInput
-                  type="number"
-                  min={0}
-                  step="0.01"
+                <CampoMoeda
                   value={draft.valorPago}
                   onChange={(e) =>
                     setDraft({

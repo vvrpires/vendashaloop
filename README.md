@@ -3,7 +3,7 @@
 Sistema web de orçamentos e vendas com emissão de NF-e e NFS-e, feito para revenda:
 cada cliente tem a própria instalação (servidor e banco Supabase).
 
-**Versão atual:** rev.42
+**Versão atual:** rev.43
 
 ## Tecnologia
 - TanStack Start (React 19 + Vite + Nitro), Tailwind CSS 4
