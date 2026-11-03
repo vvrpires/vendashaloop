@@ -2,7 +2,7 @@
 // Campo vazio no banco mantém o padrão que já existe em public/padrao/.
 // Uso (na pasta do projeto, antes do build):  node --env-file=.env scripts/exportar-imagens-padrao.mjs
 // Grava os arquivos em public/padrao/ e atualiza src/lib/imagens-padrao.ts.
-import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import pg from "pg";
 
 const url = process.env.DATABASE_URL;
@@ -62,17 +62,16 @@ for (const [chave, coluna] of Object.entries(campos)) {
   console.log(`- ${chave}: public/padrao/${nome} (do Tema do banco)`);
 }
 
-const ts = `// Imagens padrão do sistema (rev.40).
-// Os arquivos ficam em public/padrao/. Gerado por scripts/exportar-imagens-padrao.mjs,
-// que copia as imagens cadastradas no Tema do banco (campo vazio mantém o padrão).
-// Quando um campo de imagem do Tema fica vazio, o sistema usa a imagem daqui.
-export type ChaveImagem = "logoLogin" | "logoSistema" | "logo" | "logoMenu" | "fundoLogin" | "favicon";
-
-export const IMAGENS_PADRAO: Partial<Record<ChaveImagem, string>> = ${JSON.stringify(mapa, null, 2)};
-
-export function imagemPadrao(chave: ChaveImagem): string {
-  return IMAGENS_PADRAO[chave] ?? "";
+// rev.46: troca só a lista IMAGENS_PADRAO e mantém o resto do arquivo
+// (as imagens do tema claro e as funções). Antes o arquivo era recriado inteiro
+// e as imagens padrão do tema claro deixavam de funcionar.
+const arquivoTs = "src/lib/imagens-padrao.ts";
+const atualTs = await readFile(arquivoTs, "utf8");
+const listaNova = `export const IMAGENS_PADRAO: Partial<Record<ChaveImagem, string>> = ${JSON.stringify(mapa, null, 2)};`;
+const ts = atualTs.replace(/export const IMAGENS_PADRAO: Partial<Record<ChaveImagem, string>> = \{[^}]*\};/, listaNova);
+if (ts === atualTs && !atualTs.includes(listaNova)) {
+  console.error("Não achei a lista IMAGENS_PADRAO em " + arquivoTs + "; arquivo mantido.");
+  process.exit(1);
 }
-`;
-await writeFile("src/lib/imagens-padrao.ts", ts);
+await writeFile(arquivoTs, ts);
 console.log("Pronto: src/lib/imagens-padrao.ts atualizado.");
