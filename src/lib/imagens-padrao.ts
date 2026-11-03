@@ -14,7 +14,9 @@ export const IMAGENS_PADRAO: Partial<Record<ChaveImagem, string>> = {
 
 // rev.46: imagens padrão para temas claros (texto escuro sobre fundo claro), em public/padrao/claro/.
 // Se faltar alguma, usa a imagem padrão normal.
-export const IMAGENS_PADRAO_CLARO: Partial<Record<ChaveImagem, string>> = {};
+export const IMAGENS_PADRAO_CLARO: Partial<Record<ChaveImagem, string>> = {
+  logoLogin: "/padrao/claro/logo-login.png",
+};
 
 function luz(hex: string): number {
   const limpo = String(hex ?? "").replace("#", "");
