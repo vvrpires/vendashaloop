@@ -470,22 +470,24 @@ export const saveEmpresa = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((input) => {
     const row = input ?? {};
-    const nome = clip(row.nome, 120);
+    // rev.42: Minha empresa em CAIXA ALTA (menos o e-mail)
+    const alta = (valor, max) => clip(valor, max).toLocaleUpperCase("pt-BR");
+    const nome = alta(row.nome, 120);
     return {
       ...emptyEmpresa(),
       nome,
       cnpj: clip(row.cnpj, 24),
       telefone: clip(row.telefone, 32),
       email: clip(row.email, 120),
-      local: clip(row.local, 160),
-      ie: clip(row.ie, 20),
-      im: clip(row.im, 20),
+      local: alta(row.local, 160),
+      ie: alta(row.ie, 20),
+      im: alta(row.im, 20),
       crt: crtOf(row.crt),
       cep: clip(row.cep, 12),
-      logradouro: clip(row.logradouro, 120),
-      numeroEnd: clip(row.numeroEnd, 16),
-      bairro: clip(row.bairro, 60),
-      municipio: clip(row.municipio, 60),
+      logradouro: alta(row.logradouro, 120),
+      numeroEnd: alta(row.numeroEnd, 16),
+      bairro: alta(row.bairro, 60),
+      municipio: alta(row.municipio, 60),
       uf: clip(row.uf, 2).toUpperCase(),
       codigoMunicipio: clip(row.codigoMunicipio, 7),
       ambiente: ambienteOf(row.ambiente),
@@ -597,20 +599,22 @@ export const saveCliente = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((input) => {
     const row = input ?? {};
-    const nome = clip(row.nome, 140);
+    // rev.42: cadastro de clientes em CAIXA ALTA (menos o e-mail)
+    const alta = (valor, max) => clip(valor, max).toLocaleUpperCase("pt-BR");
+    const nome = alta(row.nome, 140);
     if (!nome) throw new Error("Informe o nome do cliente.");
     return {
       id: clip(row.id, 80),
       nome,
-      documento: clip(row.documento, 32),
+      documento: alta(row.documento, 32),
       telefone: clip(row.telefone, 32),
       email: clip(row.email, 120),
-      endereco: clip(row.endereco, 200),
+      endereco: alta(row.endereco, 200),
       cep: clip(row.cep, 12),
-      numero: clip(row.numero, 16),
-      bairro: clip(row.bairro, 60),
-      municipio: clip(row.municipio, 60),
-      uf: clip(row.uf, 2).toUpperCase(),
+      numero: alta(row.numero, 16),
+      bairro: alta(row.bairro, 60),
+      municipio: alta(row.municipio, 60),
+      uf: alta(row.uf, 2),
     };
   })
   .handler(async ({ context, data }) => {
@@ -679,7 +683,7 @@ export const saveProduto = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((input) => {
     const row = input ?? {};
-    const descricao = clip(row.descricao, 180);
+    const descricao = clip(row.descricao, 180).toLocaleUpperCase("pt-BR"); // rev.42: caixa alta
     if (!descricao) throw new Error("Informe a descrição.");
     return {
       id: clip(row.id, 80),

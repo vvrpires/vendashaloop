@@ -4,6 +4,7 @@ import { getBanco, saveBanco } from "@/lib/banco.functions";
 import { salvarCertificado, statusCertificado } from "@/lib/certificado.functions";
 import { pode } from "@/lib/permissoes";
 import { ensureProfile, getEmpresa, saveEmpresa } from "@/lib/vendas.functions";
+import { buscarCep, caixaAlta, mascaraCep, mascaraCnpj, mascaraTelefone, soDigitos } from "@/lib/mascaras";
 
 export function EmpresaPage() {
   const [form, setForm] = useState(null);
@@ -12,6 +13,32 @@ export function EmpresaPage() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
   const [ready, setReady] = useState(false);
+  const [cepAviso, setCepAviso] = useState("");
+  async function onCep(valor) {
+    const cep = mascaraCep(valor);
+    setForm((atual) => (atual ? { ...atual, cep } : atual));
+    setCepAviso("");
+    if (soDigitos(cep).length !== 8) return;
+    setCepAviso("Buscando endereço…");
+    const endereco = await buscarCep(cep);
+    if (!endereco) {
+      setCepAviso("CEP não encontrado. Preencha o endereço à mão.");
+      return;
+    }
+    setCepAviso("");
+    setForm((atual) =>
+      atual
+        ? {
+            ...atual,
+            logradouro: endereco.logradouro || atual.logradouro,
+            bairro: endereco.bairro || atual.bairro,
+            municipio: endereco.municipio || atual.municipio,
+            uf: endereco.uf || atual.uf,
+            codigoMunicipio: endereco.codigoMunicipio || atual.codigoMunicipio,
+          }
+        : atual,
+    );
+  }
   useEffect(() => {
     ensureProfile()
       .then(async (profile) => {
@@ -56,7 +83,7 @@ export function EmpresaPage() {
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      nome: e.target.value,
+                      nome: caixaAlta(e.target.value),
                     })
                   }
                 />
@@ -67,7 +94,7 @@ export function EmpresaPage() {
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      cnpj: e.target.value,
+                      cnpj: mascaraCnpj(e.target.value),
                     })
                   }
                 />
@@ -78,7 +105,7 @@ export function EmpresaPage() {
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      telefone: e.target.value,
+                      telefone: mascaraTelefone(e.target.value),
                     })
                   }
                 />
@@ -101,7 +128,7 @@ export function EmpresaPage() {
                     onChange={(e) =>
                       setForm({
                         ...form,
-                        local: e.target.value,
+                        local: caixaAlta(e.target.value),
                       })
                     }
                   />
@@ -114,7 +141,7 @@ export function EmpresaPage() {
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      ie: e.target.value,
+                      ie: caixaAlta(e.target.value),
                     })
                   }
                 />
@@ -125,7 +152,7 @@ export function EmpresaPage() {
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      im: e.target.value,
+                      im: caixaAlta(e.target.value),
                     })
                   }
                 />
@@ -133,13 +160,11 @@ export function EmpresaPage() {
               <Field label="CEP">
                 <TextInput
                   value={form.cep}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      cep: e.target.value,
-                    })
-                  }
+                  inputMode="numeric"
+                  placeholder="00000-000"
+                  onChange={(e) => void onCep(e.target.value)}
                 />
+                {cepAviso ? <span className="text-xs text-muted">{cepAviso}</span> : null}
               </Field>
               <Field label="Logradouro">
                 <TextInput
@@ -147,7 +172,7 @@ export function EmpresaPage() {
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      logradouro: e.target.value,
+                      logradouro: caixaAlta(e.target.value),
                     })
                   }
                 />
@@ -158,7 +183,7 @@ export function EmpresaPage() {
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      numeroEnd: e.target.value,
+                      numeroEnd: caixaAlta(e.target.value),
                     })
                   }
                 />
@@ -169,7 +194,7 @@ export function EmpresaPage() {
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      bairro: e.target.value,
+                      bairro: caixaAlta(e.target.value),
                     })
                   }
                 />
@@ -180,7 +205,7 @@ export function EmpresaPage() {
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      municipio: e.target.value,
+                      municipio: caixaAlta(e.target.value),
                     })
                   }
                 />
@@ -191,7 +216,7 @@ export function EmpresaPage() {
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      uf: e.target.value,
+                      uf: caixaAlta(e.target.value),
                     })
                   }
                 />

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button, Card, Field, SelectInput, TextInput } from "@/components/ui";
+import { caixaAlta } from "@/lib/mascaras";
 import { brl } from "@/lib/money";
 import { deleteProduto, listProdutos, saveProduto } from "@/lib/vendas.functions";
 
@@ -79,7 +80,7 @@ export function ProdutosPage() {
                 onChange={(e) =>
                   setForm({
                     ...form,
-                    descricao: e.target.value,
+                    descricao: caixaAlta(e.target.value),
                   })
                 }
                 required

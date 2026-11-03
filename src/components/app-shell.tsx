@@ -41,16 +41,16 @@ const links = [
     icone: "relatorios",
   },
   {
-    to: "/conta",
-    label: "Minha conta",
-    perm: "",
-    icone: "conta",
-  },
-  {
     to: "/equipe",
     label: "Usuários",
     perm: "usuarios",
     icone: "usuarios",
+  },
+  {
+    to: "/conta",
+    label: "Minha conta",
+    perm: "",
+    icone: "conta",
   },
 ];
 function Icone({ nome }) {

@@ -1,6 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button, Card, Field, TextInput } from "@/components/ui";
+import {
+  buscarCep,
+  caixaAlta,
+  mascaraCep,
+  mascaraDocumento,
+  mascaraTelefone,
+  soDigitos,
+} from "@/lib/mascaras";
 import { deleteCliente, listClientes, saveCliente } from "@/lib/vendas.functions";
 
 export const Route = createFileRoute("/_app/clientes")({ component: ClientesPage });
@@ -23,6 +31,30 @@ export function ClientesPage() {
   const [form, setForm] = useState(empty);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [cepAviso, setCepAviso] = useState("");
+  function alterar(campo, valor) {
+    setForm((atual) => ({ ...atual, [campo]: valor }));
+  }
+  async function onCep(valor) {
+    const cep = mascaraCep(valor);
+    alterar("cep", cep);
+    setCepAviso("");
+    if (soDigitos(cep).length !== 8) return;
+    setCepAviso("Buscando endereço…");
+    const endereco = await buscarCep(cep);
+    if (!endereco) {
+      setCepAviso("CEP não encontrado. Preencha o endereço à mão.");
+      return;
+    }
+    setCepAviso("");
+    setForm((atual) => ({
+      ...atual,
+      endereco: endereco.logradouro || atual.endereco,
+      bairro: endereco.bairro || atual.bairro,
+      municipio: endereco.municipio || atual.municipio,
+      uf: endereco.uf || atual.uf,
+    }));
+  }
   async function reload() {
     setRows(await listClientes());
   }
@@ -56,115 +88,61 @@ export function ClientesPage() {
           <Field label="Nome">
             <TextInput
               value={form.nome}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  nome: e.target.value,
-                })
-              }
+              onChange={(e) => alterar("nome", caixaAlta(e.target.value))}
               required
             />
           </Field>
           <Field label="CPF / CNPJ">
             <TextInput
               value={form.documento}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  documento: e.target.value,
-                })
-              }
+              inputMode="numeric"
+              placeholder="000.000.000-00 ou 00.000.000/0000-00"
+              onChange={(e) => alterar("documento", mascaraDocumento(e.target.value))}
             />
           </Field>
           <Field label="Telefone">
             <TextInput
               value={form.telefone}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  telefone: e.target.value,
-                })
-              }
+              inputMode="tel"
+              placeholder="(00) 00000-0000"
+              onChange={(e) => alterar("telefone", mascaraTelefone(e.target.value))}
             />
           </Field>
           <Field label="E-mail">
-            <TextInput
-              type="email"
-              value={form.email}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  email: e.target.value,
-                })
-              }
-            />
-          </Field>
-          <div className="sm:col-span-2">
-            <Field label="Endereço">
-              <TextInput
-                value={form.endereco}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    endereco: e.target.value,
-                  })
-                }
-              />
-            </Field>
-          </div>
-          <Field label="Número">
-            <TextInput
-              value={form.numero}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  numero: e.target.value,
-                })
-              }
-            />
-          </Field>
-          <Field label="Bairro">
-            <TextInput
-              value={form.bairro}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  bairro: e.target.value,
-                })
-              }
-            />
+            <TextInput type="email" value={form.email} onChange={(e) => alterar("email", e.target.value)} />
           </Field>
           <Field label="CEP">
             <TextInput
               value={form.cep}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  cep: e.target.value,
-                })
-              }
+              inputMode="numeric"
+              placeholder="00000-000"
+              onChange={(e) => void onCep(e.target.value)}
             />
+            {cepAviso ? <span className="text-xs text-muted">{cepAviso}</span> : null}
+          </Field>
+          <Field label="Endereço">
+            <TextInput
+              value={form.endereco}
+              onChange={(e) => alterar("endereco", caixaAlta(e.target.value))}
+            />
+          </Field>
+          <Field label="Número">
+            <TextInput value={form.numero} onChange={(e) => alterar("numero", caixaAlta(e.target.value))} />
+          </Field>
+          <Field label="Bairro">
+            <TextInput value={form.bairro} onChange={(e) => alterar("bairro", caixaAlta(e.target.value))} />
           </Field>
           <Field label="Município">
             <TextInput
               value={form.municipio}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  municipio: e.target.value,
-                })
-              }
+              onChange={(e) => alterar("municipio", caixaAlta(e.target.value))}
             />
           </Field>
           <Field label="UF">
             <TextInput
               value={form.uf}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  uf: e.target.value,
-                })
-              }
+              maxLength={2}
+              onChange={(e) => alterar("uf", caixaAlta(e.target.value))}
             />
           </Field>
           {error ? <p className="text-sm text-danger sm:col-span-2">{error}</p> : null}
