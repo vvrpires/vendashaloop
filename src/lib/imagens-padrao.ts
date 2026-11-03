@@ -6,6 +6,7 @@ export type ChaveImagem = "logoLogin" | "logoSistema" | "logo" | "logoMenu" | "f
 
 export const IMAGENS_PADRAO: Partial<Record<ChaveImagem, string>> = {
   "logoLogin": "/padrao/logo-login.png",
+  "logoSistema": "/padrao/logo-sistema.png",
   "logo": "/padrao/logo-pdf.png",
   "logoMenu": "/padrao/logo-menu.png",
   "favicon": "/padrao/favicon.png"
